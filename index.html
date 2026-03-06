@@ -1202,7 +1202,8 @@
   }
   .dropbox-modal-header h3 {
     font-family: 'Syne', sans-serif;
-    font-size: 16px;
+    font-size: 20px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1328,7 +1329,7 @@
   }
   .dbx-file-item:hover { background: var(--bg); }
   .dbx-file-item.selected { background: #EBEBEB; }
-  .dbx-file-item.folder { font-weight: 500; }
+  .dbx-file-item.folder { font-weight: 400; }
   .dbx-file-icon { flex-shrink: 0; color: var(--ink-soft); }
   .dbx-file-icon.folder-icon { color: #0061ff; }
   .dbx-file-name { flex: 1; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1432,8 +1433,8 @@
     color: #fff;
     border: none;
     font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    padding: 8px 18px;
+    font-size: 11px;
+    padding: 7px 16px;
     border-radius: 4px;
     cursor: pointer;
     transition: opacity 0.15s;
@@ -1445,8 +1446,8 @@
     color: var(--ink-soft);
     border: 1px solid var(--tag-border);
     font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    padding: 8px 14px;
+    font-size: 11px;
+    padding: 7px 12px;
     border-radius: 4px;
     cursor: pointer;
     transition: border-color 0.15s;
@@ -1949,12 +1950,16 @@ async function dbxImportSelected(){
     // Fetch thumbnail as base64 so it displays without CORS issues
     try{
       var nsHeader=dbxNamespaceId?JSON.stringify({'.tag':'namespace_id','namespace_id':dbxNamespaceId}):'';
-      var thumbHeaders={'Authorization':'Bearer '+dbxAccessToken,'Dropbox-API-Arg':JSON.stringify({path:path,format:'jpeg',size:'w256h256',mode:'fitone_target'})};
-      if(nsHeader) thumbHeaders['Dropbox-API-Path-Root']=nsHeader;
-      var thumbRes=await fetch('https://content.dropboxapi.com/2/files/get_thumbnail_v2',{
-        method:'POST',
-        headers:thumbHeaders
-      });
+      // v2 requires resource wrapper; fallback to v1 if it fails
+      var thumbArgV2={resource:{'.tag':'path',path:path},format:{'.tag':'jpeg'},size:{'.tag':'w256h256'},mode:{'.tag':'fitone_target'}};
+      var thumbHeadersV2={'Authorization':'Bearer '+dbxAccessToken,'Dropbox-API-Arg':JSON.stringify(thumbArgV2)};
+      if(nsHeader) thumbHeadersV2['Dropbox-API-Path-Root']=nsHeader;
+      var thumbRes=await fetch('https://content.dropboxapi.com/2/files/get_thumbnail_v2',{method:'POST',headers:thumbHeadersV2});
+      if(!thumbRes.ok){
+        var thumbHeadersV1={'Authorization':'Bearer '+dbxAccessToken,'Dropbox-API-Arg':JSON.stringify({path:path,format:'jpeg',size:'w256h256'})};
+        if(nsHeader) thumbHeadersV1['Dropbox-API-Path-Root']=nsHeader;
+        thumbRes=await fetch('https://content.dropboxapi.com/2/files/get_thumbnail',{method:'POST',headers:thumbHeadersV1});
+      }
       if(thumbRes.ok){
         var blob=await thumbRes.blob();
         thumbnailBase64=await new Promise(function(resolve){
@@ -1962,8 +1967,8 @@ async function dbxImportSelected(){
           reader.onload=function(){resolve(reader.result.split(',')[1]);};
           reader.readAsDataURL(blob);
         });
-      }
-    }catch(e){}
+      } else { console.warn('Thumbnail failed:',filename,thumbRes.status); }
+    }catch(e){ console.warn('Thumbnail error:',filename,e); }
 
     // Get persistent shared link for dropbox_url (used for full-res download)
     try{
