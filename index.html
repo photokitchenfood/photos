@@ -1757,7 +1757,10 @@ function openDropboxModal(){
   }
   var st=sessionStorage.getItem('dbx_token'),sk=sessionStorage.getItem('dbx_app_key');
   if(st&&sk){dbxAccessToken=st;dbxAppKey=sk;dbxShowBrowser();return;}
-  dbxShowScreen('connect');
+  // App key pre-embedded — skip key entry and go straight to Dropbox login
+  dbxAppKey='rke6raamf9u6kps';
+  sessionStorage.setItem('dbx_app_key',dbxAppKey);
+  dbxStartAuthWithKey(dbxAppKey);
 }
 
 function closeDropboxModal(){document.getElementById('dropbox-modal').classList.remove('open');}
@@ -1767,6 +1770,10 @@ document.addEventListener('click',function(e){if(e.target&&e.target.id==='dropbo
 function dbxStartAuth(){
   var appKey=document.getElementById('dbx-app-key').value.trim();
   if(!appKey){dbxShowAuthError('Please enter your Dropbox app key.');return;}
+  dbxStartAuthWithKey(appKey);
+}
+
+function dbxStartAuthWithKey(appKey){
   var redirectUri=window.location.href.split('#')[0].split('?')[0];
   sessionStorage.setItem('dbx_app_key',appKey);
   var url='https://www.dropbox.com/oauth2/authorize?client_id='+encodeURIComponent(appKey)+'&response_type=token&redirect_uri='+encodeURIComponent(redirectUri)+'&token_access_type=online';
@@ -1929,8 +1936,13 @@ function dbxEsc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 // Auto-open if returning from OAuth
 (function(){
-  if(window.location.hash.includes('access_token=')&&sessionStorage.getItem('dbx_app_key')){
-    setTimeout(function(){openDropboxModal();},300);
+  if(window.location.hash.includes('access_token=')){
+    var params=new URLSearchParams(window.location.hash.slice(1));
+    var token=params.get('access_token');
+    if(token){
+      sessionStorage.setItem('dbx_app_key','rke6raamf9u6kps');
+      setTimeout(function(){openDropboxModal();},300);
+    }
   }
 })();
 </script>
