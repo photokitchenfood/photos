@@ -1728,7 +1728,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span id="wm-campaign-label">Upload campaign logo (PNG)</span>
           </div>
-          <input type="file" id="wm-campaign-input" accept="image/png,image/svg+xml" style="display:none">
+          <input type="file" id="wm-campaign-input" accept="image/png,image/jpeg,image/jpg,image/svg+xml" style="display:none">
 
           <!-- Campaign logo position (shown when loaded) -->
           <div id="wm-campaign-pos-wrap" style="display:none;margin-top:12px;">
@@ -2294,12 +2294,33 @@ document.getElementById('wm-campaign-input').addEventListener('change', function
   if (!file) return;
   const img = new Image();
   img.onload = () => {
-    campaignLogoImg = img;
-    const zone = document.getElementById('wm-campaign-zone');
-    zone.classList.add('loaded');
-    document.getElementById('wm-campaign-label').textContent = '✓ ' + file.name.replace(/\.[^.]+$/, '');
-    document.getElementById('wm-campaign-pos-wrap').style.display = 'block';
-    updateWmPreview();
+    // Remove white/near-white background so JPEG logos become transparent
+    const offscreen = document.createElement('canvas');
+    offscreen.width = img.naturalWidth;
+    offscreen.height = img.naturalHeight;
+    const octx = offscreen.getContext('2d');
+    octx.drawImage(img, 0, 0);
+    const imageData = octx.getImageData(0, 0, offscreen.width, offscreen.height);
+    const data = imageData.data;
+    const threshold = 240; // pixels brighter than this on all channels become transparent
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i+1], b = data[i+2];
+      if (r >= threshold && g >= threshold && b >= threshold) {
+        data[i+3] = 0; // make transparent
+      }
+    }
+    octx.putImageData(imageData, 0, 0);
+    // Store the processed canvas as an image
+    const processedImg = new Image();
+    processedImg.onload = () => {
+      campaignLogoImg = processedImg;
+      const zone = document.getElementById('wm-campaign-zone');
+      zone.classList.add('loaded');
+      document.getElementById('wm-campaign-label').textContent = '✓ ' + file.name.replace(/\.[^.]+$/, '');
+      document.getElementById('wm-campaign-pos-wrap').style.display = 'block';
+      updateWmPreview();
+    };
+    processedImg.src = offscreen.toDataURL('image/png');
   };
   img.src = URL.createObjectURL(file);
 });
@@ -2454,8 +2475,8 @@ function compositeImage(sourceImg, brandLogo, campaignLogo, settings, outputCanv
     ctx.drawImage(source, x, y, lw, lh);
   }
 
-  drawLogo(brandLogo, settings.position, true);            // brand logo: apply colour tint
-  drawLogo(campaignLogo, settings.campaignPosition, false); // campaign PNG: keep transparency
+  drawLogo(brandLogo, settings.position, false);           // brand logo: transparent PNG, no tint
+  drawLogo(campaignLogo, settings.campaignPosition, false); // campaign logo: transparent, no tint
 }
 
 function updateWmPreview() {
