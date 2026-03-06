@@ -2179,7 +2179,9 @@ async function dbxImportSelected(){
       }
     }catch(e){}
 
-    var campaign=parseCampaignFromFilename(filename);
+    // Derive campaign from the folder name (last segment of the folder path)
+    var folderPath=path.substring(0,path.lastIndexOf('/'));
+    var campaign=folderPath.split('/').pop()||'Uncategorised';
     var ym=filename.match(/\b(20\d{2})\b/);
     var year=ym?ym[1]:String(new Date().getFullYear());
     newPhotos.push({
