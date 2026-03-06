@@ -211,6 +211,41 @@
     color: var(--ink);
   }
 
+  .results-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .results-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .results-action-btn:hover {
+    background: var(--ink);
+    color: var(--surface);
+  }
+  .results-action-btn--dbx {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .results-action-btn--dbx:hover {
+    opacity: 0.8;
+  }
+  .results-action-btn svg { flex-shrink: 0; }
+
   #grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -638,27 +673,7 @@
 
   /* ── SAVE TO DISK BUTTON ── */
 
-  .btn-select-card {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(255,255,255,0.92);
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    color: var(--ink-soft);
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .card:hover .btn-select-card { opacity: 1; }
-  .card.selectable .btn-select-card { display: none; }
+  .btn-select-card { display: none; }
 
   /* ── Brand Logo Upload Button (header) ── */
   .brand-logo-btn {
@@ -685,8 +700,8 @@
     display: none;
     align-items: center;
     gap: 10px;
-    background: var(--ink);
-    color: #fff;
+    background: #E8E4DE;
+    color: var(--ink);
     padding: 10px 20px;
     border-radius: 6px;
     margin-bottom: 14px;
@@ -694,11 +709,11 @@
     font-family: 'DM Mono', monospace;
   }
   .select-toolbar.visible { display: flex; }
-  .select-toolbar-count { flex: 1; opacity: 0.75; }
+  .select-toolbar-count { flex: 1; color: var(--ink-soft); }
   .btn-select-all {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #fff;
+    background: transparent;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink);
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     padding: 5px 10px;
@@ -706,9 +721,9 @@
     cursor: pointer;
     transition: background 0.15s;
   }
-  .btn-select-all:hover { background: rgba(255,255,255,0.2); }
+  .btn-select-all:hover { background: rgba(0,0,0,0.06); }
   .btn-download-wm {
-    background: var(--accent);
+    background: var(--ink);
     border: none;
     color: #fff;
     font-family: 'DM Mono', monospace;
@@ -721,23 +736,23 @@
     gap: 6px;
     transition: opacity 0.15s;
   }
-  .btn-download-wm:hover { opacity: 0.85; }
+  .btn-download-wm:hover { opacity: 0.8; }
   .btn-cancel-select {
     background: none;
-    border: 1px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.7);
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-soft);
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     padding: 5px 10px;
     border-radius: 4px;
     cursor: pointer;
   }
-  .btn-cancel-select:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+  .btn-cancel-select:hover { color: var(--ink); border-color: var(--ink); }
 
   /* ── Card selection state ── */
   .card.selectable { cursor: pointer; }
   .card.selected {
-    outline: 2.5px solid var(--accent);
+    outline: 2.5px solid var(--ink);
     outline-offset: -2px;
   }
   .card-select-check {
@@ -753,13 +768,15 @@
     align-items: center;
     justify-content: center;
     z-index: 5;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
     transition: background 0.12s, border-color 0.12s;
   }
+  .card:hover .card-select-check { display: flex; }
   .selectable .card-select-check { display: flex; }
   .card.selected .card-select-check {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--ink);
+    border-color: var(--ink);
   }
   .card-select-check svg { opacity: 0; transition: opacity 0.1s; }
   .card.selected .card-select-check svg { opacity: 1; }
@@ -1458,7 +1475,7 @@
   <div style="display:flex;align-items:center;gap:10px;">
     <button class="dropbox-btn" id="dropbox-btn" onclick="openDropboxModal()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 6l6 4 6-4-6-4z"/><path d="M6 14l6 4 6-4"/><path d="M6 10l6 4 6-4"/></svg>
-      <span id="dropbox-btn-label">Import from Dropbox</span>
+      <span id="dropbox-btn-label">Connect to Dropbox</span>
     </button>
     <button class="brand-logo-btn" id="brand-logo-btn" onclick="document.getElementById('brand-logo-input').click()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -1510,6 +1527,16 @@
   <main>
     <div class="results-bar">
       <div class="results-count" id="results-count"><span>—</span> photos</div>
+      <div class="results-bar-actions">
+        <button class="results-action-btn" onclick="openUploadModal()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Photo
+        </button>
+        <button class="results-action-btn results-action-btn--dbx" onclick="openDropboxModal()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L6 6l6 4 6-4-6-4z"/><path d="M6 14l6 4 6-4"/><path d="M6 10l6 4 6-4"/></svg>
+          Import from Dropbox
+        </button>
+      </div>
     </div>
 
     <div class="select-toolbar" id="select-toolbar">
@@ -1562,12 +1589,7 @@
   Save Catalog
 </button>
 
-<!-- Floating Add Button -->
-<button class="fab" id="fab-add" title="Add Photo" onclick="openUploadModal()">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-  </svg>
-</button>
+
 
 
 <!-- Watermark Modal -->
@@ -1683,6 +1705,11 @@
       </div>
     </div>
 
+    <!-- Error state -->
+    <div class="upload-error" id="upload-error"></div>
+
+  </div>
+</div>
 
 <!-- Dropbox Import Modal -->
 <div class="dropbox-modal-overlay" id="dropbox-modal">
@@ -1827,7 +1854,7 @@ function dbxDisconnect(){
   sessionStorage.removeItem('dbx_token');sessionStorage.removeItem('dbx_app_key');sessionStorage.removeItem('dbx_namespace');dbxNamespaceId=null;
   dbxSelectedFiles.clear();dbxCurrentImageFiles=[];
   document.getElementById('dropbox-btn').classList.remove('connected');
-  document.getElementById('dropbox-btn-label').textContent='Import from Dropbox';
+  document.getElementById('dropbox-btn-label').textContent='Connect to Dropbox';
   dbxShowScreen('connect');
 }
 
@@ -1927,13 +1954,30 @@ async function dbxImportSelected(){
   for(var i=0;i<filePaths.length;i++){
     var path=filePaths[i];
     var filename=path.split('/').pop();
-    lbl.textContent='Fetching link for '+filename+'\u2026 ('+(imported+1)+'/'+total+')';
+    lbl.textContent='Importing '+filename+'\u2026 ('+(imported+1)+'/'+total+')';
     bar.style.width=Math.round((imported/total)*100)+'%';
-    var displayUrl='',sharedUrl='';
+    var thumbnailBase64='',sharedUrl='';
+
+    // Fetch thumbnail as base64 so it displays without CORS issues
     try{
-      var tr=await fetch('https://api.dropboxapi.com/2/files/get_temporary_link',{method:'POST',headers:{'Authorization':'Bearer '+dbxAccessToken,'Content-Type':'application/json'},body:JSON.stringify({path:path})});
-      if(tr.ok){var td=await tr.json();displayUrl=td.link||'';}
+      var nsHeader=dbxNamespaceId?JSON.stringify({'.tag':'namespace_id','namespace_id':dbxNamespaceId}):'';
+      var thumbHeaders={'Authorization':'Bearer '+dbxAccessToken,'Dropbox-API-Arg':JSON.stringify({path:path,format:'jpeg',size:'w256h256',mode:'fitone_target'})};
+      if(nsHeader) thumbHeaders['Dropbox-API-Path-Root']=nsHeader;
+      var thumbRes=await fetch('https://content.dropboxapi.com/2/files/get_thumbnail_v2',{
+        method:'POST',
+        headers:thumbHeaders
+      });
+      if(thumbRes.ok){
+        var blob=await thumbRes.blob();
+        thumbnailBase64=await new Promise(function(resolve){
+          var reader=new FileReader();
+          reader.onload=function(){resolve(reader.result.split(',')[1]);};
+          reader.readAsDataURL(blob);
+        });
+      }
     }catch(e){}
+
+    // Get persistent shared link for dropbox_url (used for full-res download)
     try{
       var sr=await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings',{method:'POST',headers:{'Authorization':'Bearer '+dbxAccessToken,'Content-Type':'application/json'},body:JSON.stringify({path:path,settings:{requested_visibility:'public'}})});
       if(sr.ok){var sd=await sr.json();sharedUrl=(sd.url||'').replace('?dl=0','?raw=1');}
@@ -1942,10 +1986,18 @@ async function dbxImportSelected(){
         if(lr.ok){var ld=await lr.json();if(ld.links&&ld.links.length)sharedUrl=(ld.links[0].url||'').replace('?dl=0','?raw=1');}
       }
     }catch(e){}
+
     var campaign=parseCampaignFromFilename(filename);
     var ym=filename.match(/\b(20\d{2})\b/);
     var year=ym?ym[1]:String(new Date().getFullYear());
-    newPhotos.push({filename:filename,main_food:filename.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim(),brands:[],ingredients:[],color_palette:[],styling_theme:'',campaign:campaign,year:year,dropbox_url:sharedUrl||displayUrl,_display_url:displayUrl});
+    newPhotos.push({
+      filename:filename,
+      main_food:filename.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim(),
+      brands:[],ingredients:[],color_palette:[],styling_theme:'',
+      campaign:campaign,year:year,
+      dropbox_url:sharedUrl,
+      image_data:thumbnailBase64
+    });
     imported++;
   }
   bar.style.width='100%';
@@ -3001,16 +3053,13 @@ function displayPhotos(photosToShow) {
     <div class="card" data-photo-index="${globalIdx}"
       onclick="handleCardClick(event, ${globalIdx})"
       oncontextmenu="handleCardRightClick(event, ${globalIdx})">
-      <div class="card-select-check">
+      <div class="card-select-check" onclick="event.stopPropagation(); selectModeActive ? toggleCardSelection(${globalIdx}) : enterSelectMode(${globalIdx})" title="Select photo">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="card-img">
-        <img src="${photo._display_url ? photo._display_url : 'data:image/jpeg;base64,' + photo.image_data}" alt="${photo.main_food}" />
+        <img src="${photo._display_url ? photo._display_url : (photo.image_data ? 'data:image/jpeg;base64,' + photo.image_data : '')}" alt="${photo.main_food}" onerror="this.style.opacity='0.2'" />
         ${linkIcon}
-        <button class="btn-select-card" onclick="event.stopPropagation(); enterSelectMode(${globalIdx})" title="Select photo">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Select
-        </button>
+
         <button class="btn-edit" onclick="event.stopPropagation(); editPhoto(${globalIdx})">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
