@@ -2013,16 +2013,23 @@ function dbxRenderPins(){
   if(!pins.length){sec.style.display='none';return;}
   sec.style.display='';
   list.innerHTML=pins.map(function(p){
-    var ep=p.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    var en=p.name.replace(/'/g,"\\'");
-    return '<div class="dbx-pin-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="#e6b800" stroke="#e6b800" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
-      +'<span class="dbx-pin-name" onclick="dbxNavigateInto(\''+ep+'\',\''+en+'\')" style="cursor:pointer">'+dbxEsc(p.name)+'</span>'
+    return '<div class="dbx-pin-item">'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="#e6b800" stroke="#e6b800" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
+      +'<span class="dbx-pin-name dbx-pin-nav" data-path="'+dbxEsc(p.path)+'" data-name="'+dbxEsc(p.name)+'" style="cursor:pointer">'+dbxEsc(p.name)+'</span>'
       +'<span class="dbx-pin-path">'+dbxEsc(p.path)+'</span>'
-      +'<button class="dbx-unpin-btn" title="Unpin" onclick="dbxUnpin(\''+ep+'\')">'
+      +'<button class="dbx-unpin-btn dbx-pin-del" data-path="'+dbxEsc(p.path)+'" title="Unpin">'
       +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
       +'</button></div>';
   }).join('');
 }
+// Delegated click handler for pin list (avoids inline onclick escaping issues)
+document.addEventListener('click', function(e) {
+  var nav = e.target.closest && e.target.closest('.dbx-pin-nav');
+  if (nav) { dbxNavigateInto(nav.dataset.path, nav.dataset.name); return; }
+  var del = e.target.closest && e.target.closest('.dbx-pin-del');
+  if (del) { dbxUnpin(del.dataset.path); return; }
+});
+
 function dbxUnpin(path){
   var pins=dbxGetPins().filter(function(p){return p.path!==path;});
   dbxSavePins(pins);
