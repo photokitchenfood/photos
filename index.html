@@ -1790,17 +1790,41 @@ function dbxShowScreen(which){
   document.getElementById('dbx-footer').style.display=which==='browser'?'flex':'none';
 }
 
+var dbxNamespaceId=null;
+
 function dbxShowBrowser(){
   sessionStorage.setItem('dbx_token',dbxAccessToken);
   document.getElementById('dropbox-btn').classList.add('connected');
   document.getElementById('dropbox-btn-label').textContent='Dropbox Connected';
   dbxCurrentPath='';dbxPathStack=[];dbxSelectedFiles.clear();dbxUpdateFooter();
-  dbxShowScreen('browser');dbxLoadFolder('');
+  dbxShowScreen('browser');
+  dbxFetchNamespace().then(function(){ dbxLoadFolder(''); });
+}
+
+async function dbxFetchNamespace(){
+  dbxNamespaceId=null;
+  // Restore from session if available
+  var saved=sessionStorage.getItem('dbx_namespace');
+  if(saved){dbxNamespaceId=saved;return;}
+  try{
+    var res=await fetch('https://api.dropboxapi.com/2/users/get_current_account',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+dbxAccessToken,'Content-Type':'application/json'},
+      body:'null'
+    });
+    if(res.ok){
+      var data=await res.json();
+      if(data.root_info&&data.root_info.root_namespace_id){
+        dbxNamespaceId=data.root_info.root_namespace_id;
+        sessionStorage.setItem('dbx_namespace',dbxNamespaceId);
+      }
+    }
+  }catch(e){}
 }
 
 function dbxDisconnect(){
   dbxAccessToken=null;dbxAppKey=null;
-  sessionStorage.removeItem('dbx_token');sessionStorage.removeItem('dbx_app_key');
+  sessionStorage.removeItem('dbx_token');sessionStorage.removeItem('dbx_app_key');sessionStorage.removeItem('dbx_namespace');dbxNamespaceId=null;
   dbxSelectedFiles.clear();dbxCurrentImageFiles=[];
   document.getElementById('dropbox-btn').classList.remove('connected');
   document.getElementById('dropbox-btn-label').textContent='Import from Dropbox';
@@ -1817,7 +1841,7 @@ async function dbxLoadFolder(path){
   try{
     var res=await fetch('https://api.dropboxapi.com/2/files/list_folder',{
       method:'POST',
-      headers:{'Authorization':'Bearer '+dbxAccessToken,'Content-Type':'application/json'},
+      headers:{'Authorization':'Bearer '+dbxAccessToken,'Content-Type':'application/json','Dropbox-API-Path-Root':dbxNamespaceId?JSON.stringify({'.tag':'namespace_id','namespace_id':dbxNamespaceId}):''},
       body:JSON.stringify({path:path||'',recursive:false})
     });
     if(!res.ok){if(res.status===401){dbxShowBrowserError('Session expired - please disconnect and reconnect.');return;}var err=await res.json().catch(function(){return{};});throw new Error(err.error_summary||'Error '+res.status);}
