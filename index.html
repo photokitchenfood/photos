@@ -1270,6 +1270,106 @@
   }
 
   /* Breadcrumb */
+  /* Search box */
+  .dbx-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .dbx-search-input {
+    flex: 1;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--ink-faint);
+    border-radius: 4px;
+    padding: 5px 10px 5px 28px;
+    color: var(--ink);
+    outline: none;
+  }
+  .dbx-search-input:focus { border-color: var(--ink-soft); }
+  .dbx-search-wrap {
+    position: relative;
+    flex: 1;
+  }
+  .dbx-search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+  .dbx-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-faint);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+    display: none;
+  }
+  .dbx-search-clear:hover { color: var(--ink); }
+
+  /* Pinned folders */
+  .dbx-pins-section {
+    margin-bottom: 12px;
+  }
+  .dbx-pins-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .dbx-pin-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .dbx-pin-item:hover { background: var(--bg); }
+  .dbx-pin-item .dbx-pin-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dbx-pin-item .dbx-pin-path { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 2; }
+  .dbx-unpin-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    padding: 2px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .dbx-unpin-btn:hover { color: #c0392b; }
+  .dbx-pin-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    padding: 2px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .dbx-pin-btn:hover { color: #e6b800; }
+  .dbx-pin-btn.pinned { color: #e6b800; }
+  .dbx-divider {
+    height: 1px;
+    background: var(--ink-faint);
+    opacity: 0.25;
+    margin: 10px 0;
+  }
+
   .dbx-breadcrumb {
     display: flex;
     align-items: center;
@@ -1713,6 +1813,18 @@
     </div>
     <div class="dropbox-modal-body" id="dbx-browser-screen" style="display:none">
       <div id="dbx-browser-error" class="dbx-error-msg" style="display:none"></div>
+      <div class="dbx-search-row">
+        <div class="dbx-search-wrap">
+          <svg class="dbx-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="dbx-search-input" id="dbx-search-input" type="text" placeholder="Search folders…" oninput="dbxOnSearchInput(this.value)" />
+          <button class="dbx-search-clear" id="dbx-search-clear" onclick="dbxClearSearch()">&#x2715;</button>
+        </div>
+      </div>
+      <div id="dbx-pins-section" class="dbx-pins-section" style="display:none">
+        <div class="dbx-pins-label">Pinned folders</div>
+        <div id="dbx-pins-list"></div>
+        <div class="dbx-divider"></div>
+      </div>
       <div class="dbx-breadcrumb" id="dbx-breadcrumb"></div>
       <div class="dbx-select-all-row" id="dbx-select-all-row" style="display:none">
         <span id="dbx-image-count">0 images in this folder</span>
@@ -1760,7 +1872,11 @@ function openDropboxModal(){
   dbxStartAuthWithKey(dbxAppKey);
 }
 
-function closeDropboxModal(){document.getElementById('dropbox-modal').classList.remove('open');}
+function closeDropboxModal(){
+  document.getElementById('dropbox-modal').classList.remove('open');
+  var inp=document.getElementById('dbx-search-input');
+  if(inp){inp.value='';document.getElementById('dbx-search-clear').style.display='none';}
+}
 
 document.addEventListener('click',function(e){if(e.target&&e.target.id==='dropbox-modal')closeDropboxModal();});
 
@@ -1794,6 +1910,7 @@ function dbxShowBrowser(){
   document.getElementById('dropbox-btn-label').textContent='Dropbox Connected';
   dbxCurrentPath='';dbxPathStack=[];dbxSelectedFiles.clear();dbxUpdateFooter();
   dbxShowScreen('browser');
+  dbxRenderPins();
   dbxFetchNamespace().then(function(){ dbxLoadFolder(''); });
 }
 
@@ -1856,7 +1973,8 @@ async function dbxLoadFolder(path){
     folders.forEach(function(f){
       var ep=f.path_display.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       var en=f.name.replace(/'/g,"\\'");
-      html+='<div class="dbx-file-item folder" onclick="dbxNavigateInto(\''+ep+'\',\''+en+'\')"><svg class="dbx-file-icon folder-icon" width="16" height="16" viewBox="0 0 24 24" fill="#0061ff" stroke="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><span class="dbx-file-name">'+dbxEsc(f.name)+'</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-faint)"><polyline points="9 18 15 12 9 6"/></svg></div>';
+      var isPinned=dbxIsPinned(f.path_display);
+      html+='<div class="dbx-file-item folder" onclick="dbxNavigateInto(\''+ep+'\',\''+en+'\')"><svg class="dbx-file-icon folder-icon" width="16" height="16" viewBox="0 0 24 24" fill="#0061ff" stroke="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><span class="dbx-file-name">'+dbxEsc(f.name)+'</span><button class="dbx-pin-btn'+(isPinned?' pinned':'')+'" title="'+(isPinned?'Unpin':'Pin this folder')+'" onclick="event.stopPropagation();dbxTogglePin(\''+ep+'\',\''+en+'\',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="'+(isPinned?'#e6b800':'none')+'" stroke="'+(isPinned?'#e6b800':'currentColor')+'" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-faint)"><polyline points="9 18 15 12 9 6"/></svg></div>';
     });
     images.forEach(function(f,i){
       var sel=dbxSelectedFiles.has(f.path_display);
@@ -1868,6 +1986,99 @@ async function dbxLoadFolder(path){
     });
     listEl.innerHTML=html;
   }catch(err){dbxShowBrowserError('Could not load folder: '+err.message);}
+}
+
+// ── Pinned folders ──
+function dbxGetPins(){return pinnedFolders;}
+function dbxSavePins(pins){pinnedFolders=pins;}
+function dbxIsPinned(path){return dbxGetPins().some(function(p){return p.path===path;});}
+function dbxTogglePin(path,name,btnEl){
+  var pins=dbxGetPins();
+  var idx=pins.findIndex(function(p){return p.path===path;});
+  if(idx>-1){pins.splice(idx,1);}
+  else{pins.unshift({path:path,name:name});}
+  dbxSavePins(pins);
+  dbxRenderPins();
+  // update this button
+  var pinned=dbxIsPinned(path);
+  btnEl.classList.toggle('pinned',pinned);
+  btnEl.title=pinned?'Unpin':'Pin this folder';
+  btnEl.querySelector('svg').setAttribute('fill',pinned?'#e6b800':'none');
+  btnEl.querySelector('svg').setAttribute('stroke',pinned?'#e6b800':'currentColor');
+}
+function dbxRenderPins(){
+  var pins=dbxGetPins();
+  var sec=document.getElementById('dbx-pins-section');
+  var list=document.getElementById('dbx-pins-list');
+  if(!pins.length){sec.style.display='none';return;}
+  sec.style.display='';
+  list.innerHTML=pins.map(function(p){
+    var ep=p.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var en=p.name.replace(/'/g,"\\'");
+    return '<div class="dbx-pin-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="#e6b800" stroke="#e6b800" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
+      +'<span class="dbx-pin-name" onclick="dbxNavigateInto(\''+ep+'\',\''+en+'\')" style="cursor:pointer">'+dbxEsc(p.name)+'</span>'
+      +'<span class="dbx-pin-path">'+dbxEsc(p.path)+'</span>'
+      +'<button class="dbx-unpin-btn" title="Unpin" onclick="dbxUnpin(\''+ep+'\')">'
+      +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      +'</button></div>';
+  }).join('');
+}
+function dbxUnpin(path){
+  var pins=dbxGetPins().filter(function(p){return p.path!==path;});
+  dbxSavePins(pins);
+  dbxRenderPins();
+  // refresh current folder so pin buttons update
+  dbxLoadFolder(dbxCurrentPath);
+}
+
+// ── Folder search ──
+var dbxSearchTimer=null;
+var dbxSearchResults=[];
+function dbxOnSearchInput(val){
+  var clearBtn=document.getElementById('dbx-search-clear');
+  clearBtn.style.display=val?'block':'none';
+  clearTimeout(dbxSearchTimer);
+  if(!val.trim()){dbxClearSearch();return;}
+  dbxSearchTimer=setTimeout(function(){dbxRunSearch(val.trim());},400);
+}
+function dbxClearSearch(){
+  var inp=document.getElementById('dbx-search-input');
+  var clearBtn=document.getElementById('dbx-search-clear');
+  inp.value='';
+  clearBtn.style.display='none';
+  // restore normal view
+  document.getElementById('dbx-select-all-row').style.display='none';
+  dbxRenderPins();
+  dbxLoadFolder(dbxCurrentPath);
+}
+async function dbxRunSearch(query){
+  var listEl=document.getElementById('dbx-file-list');
+  document.getElementById('dbx-pins-section').style.display='none';
+  document.getElementById('dbx-select-all-row').style.display='none';
+  listEl.innerHTML='<div class="dbx-loading"><div class="spinner"></div><span>Searching&hellip;</span></div>';
+  try{
+    var nsHeader=dbxNamespaceId?JSON.stringify({'.tag':'namespace_id','namespace_id':dbxNamespaceId}):'';
+    var headers={'Authorization':'Bearer '+dbxAccessToken,'Content-Type':'application/json'};
+    if(nsHeader) headers['Dropbox-API-Path-Root']=nsHeader;
+    var res=await fetch('https://api.dropboxapi.com/2/files/search_v2',{
+      method:'POST',
+      headers:headers,
+      body:JSON.stringify({query:query,options:{file_categories:[{'.tag':'folder'}],max_results:20}})
+    });
+    if(!res.ok){throw new Error('Search failed: '+res.status);}
+    var data=await res.json();
+    var matches=(data.matches||[]).map(function(m){return m.metadata&&m.metadata.metadata;}).filter(function(m){return m&&m['.tag']==='folder';});
+    if(!matches.length){listEl.innerHTML='<div class="dbx-empty">No folders found for &ldquo;'+dbxEsc(query)+'&rdquo;.</div>';return;}
+    var html=matches.map(function(f){
+      var ep=f.path_display.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var en=f.name.replace(/'/g,"\\'");
+      var isPinned=dbxIsPinned(f.path_display);
+      return '<div class="dbx-file-item folder" onclick="dbxNavigateInto(\''+ep+'\',\''+en+'\')"><svg class="dbx-file-icon folder-icon" width="16" height="16" viewBox="0 0 24 24" fill="#0061ff" stroke="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><span class="dbx-file-name">'+dbxEsc(f.name)+'</span><span style="font-size:10px;color:var(--ink-faint);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;">'+dbxEsc(f.path_display)+'</span><button class="dbx-pin-btn'+(isPinned?' pinned':'')+'" title="'+(isPinned?'Unpin':'Pin')+'" onclick="event.stopPropagation();dbxTogglePin(\''+ep+'\',\''+en+'\',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="'+(isPinned?'#e6b800':'none')+'" stroke="'+(isPinned?'#e6b800':'currentColor')+'" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-faint)"><polyline points="9 18 15 12 9 6"/></svg></div>';
+    }).join('');
+    listEl.innerHTML=html;
+  }catch(err){
+    listEl.innerHTML='<div class="dbx-empty" style="color:#c0392b">Search error: '+dbxEsc(err.message)+'</div>';
+  }
 }
 
 function dbxNavigateInto(path,name){
@@ -2000,6 +2211,11 @@ function dbxEsc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 <script>
 const photos = [
+];
+
+let pinnedFolders = [
+  {"path":"/Photokitchen/1 Projects/Food/The Marketplace/TMP Campaign Shoots","name":"TMP Campaign Shoots"},
+  {"path":"/Photokitchen/1 Projects/Food/The Marketplace/TMP IG & FB Shoots","name":"TMP IG & FB Shoots"}
 ];
 
 const BRAND_NAMES = [
@@ -2800,6 +3016,9 @@ function saveCatalog() {
   // Get current HTML, update the date comment at the top
   let html = document.documentElement.outerHTML;
   html = html.replace(/<!-- UPDATED VERSION [\d-]+ -->/, `<!-- UPDATED VERSION ${now.toISOString().slice(0,10)} -->`);
+
+  // Persist pinnedFolders back into the file
+  html = html.replace(/let pinnedFolders = \[.*?\];/s, 'let pinnedFolders = ' + JSON.stringify(pinnedFolders) + ';');
 
   const blob = new Blob([html], { type: 'text/html' });
   const a = document.createElement('a');
