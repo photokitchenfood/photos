@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>[PHOTOS] Photokitchen Shoot Catalog</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🍓</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -954,34 +954,25 @@
   }
   .wm-progress.visible { display: block; }
 
-    .save-btn {
-    position: fixed;
-    bottom: 32px;
-    right: 96px; /* sits left of the FAB */
-    z-index: 200;
+  .save-btn {
     display: none;
     align-items: center;
-    gap: 8px;
-    padding: 0 18px;
-    height: 52px;
-    border-radius: 100px;
-    background: var(--surface);
-    color: var(--ink);
-    border: 1.5px solid var(--tag-border);
+    gap: 5px;
+    padding: 5px 11px;
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    color: var(--ink);
     cursor: pointer;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    transition: background 0.15s, color 0.15s;
     white-space: nowrap;
   }
   .save-btn.visible { display: flex; }
   .save-btn:hover {
-    transform: scale(1.04);
-    box-shadow: 0 8px 28px rgba(0,0,0,0.16);
-    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--surface);
   }
   .save-btn svg { flex-shrink: 0; }
   .fab {
@@ -1190,6 +1181,7 @@
   }
   .dropbox-modal-overlay.open { display: flex; }
   .dropbox-modal {
+    font-family: 'Bricolage Grotesque', sans-serif;
     background: var(--surface);
     border-radius: 12px;
     width: 560px;
@@ -1335,7 +1327,7 @@
     font-size: 12px;
   }
   .dbx-file-item:hover { background: var(--bg); }
-  .dbx-file-item.selected { background: var(--accent-pale); }
+  .dbx-file-item.selected { background: #EBEBEB; }
   .dbx-file-item.folder { font-weight: 500; }
   .dbx-file-icon { flex-shrink: 0; color: var(--ink-soft); }
   .dbx-file-icon.folder-icon { color: #0061ff; }
@@ -1352,8 +1344,8 @@
     transition: all 0.1s;
   }
   .dbx-file-item.selected .dbx-file-check {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--ink);
+    border-color: var(--ink);
   }
   .dbx-file-count {
     font-size: 10px;
@@ -1536,6 +1528,10 @@
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L6 6l6 4 6-4-6-4z"/><path d="M6 14l6 4 6-4"/><path d="M6 10l6 4 6-4"/></svg>
           Import from Dropbox
         </button>
+        <button class="save-btn" id="save-btn" onclick="saveCatalog()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save Catalog
+        </button>
       </div>
     </div>
 
@@ -1579,15 +1575,7 @@
   </div>
 </div>
 
-<!-- Save to Disk Button (appears after changes) -->
-<button class="save-btn" id="save-btn" onclick="saveCatalog()">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-  Save Catalog
-</button>
+
 
 
 
