@@ -2138,6 +2138,7 @@ async function dbxImportSelected(){
   var bar=document.getElementById('dbx-progress-bar');
   var lbl=document.getElementById('dbx-progress-label');
   var imported=0,newPhotos=[];
+  try{
   for(var i=0;i<filePaths.length;i++){
     var path=filePaths[i];
     var filename=path.split('/').pop();
@@ -2200,6 +2201,12 @@ async function dbxImportSelected(){
   closeDropboxModal();
   initCampaigns();initFilters();filterPhotos();markUnsaved();
   setTimeout(function(){dbxShowScreen('browser');dbxUpdateFooter();dbxLoadFolder(dbxCurrentPath);},600);
+  }catch(importErr){
+    // Show the actual error on screen instead of silently failing
+    dbxShowScreen('browser');
+    dbxShowBrowserError('Import failed: '+importErr.message);
+    console.error('Import error:', importErr);
+  }
 }
 function dbxEsc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
